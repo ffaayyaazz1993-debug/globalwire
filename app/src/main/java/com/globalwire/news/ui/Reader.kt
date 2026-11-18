@@ -1,5 +1,6 @@
 package com.globalwire.news.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,13 +27,14 @@ import coil.compose.AsyncImage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(article: Article, onBack: () -> Unit) {
+    BackHandler { onBack() }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(article.h1, maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to main")
                     }
                 }
             )
@@ -95,21 +97,6 @@ fun ReaderScreen(article: Article, onBack: () -> Unit) {
                 }
             }
             HtmlBody(article.body)
-            if (article.sources.isNotEmpty()) {
-                androidx.compose.foundation.layout.Spacer(
-                    Modifier.padding(bottom = 8.dp))
-                Text("Sources",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold)
-                androidx.compose.foundation.layout.Spacer(
-                    Modifier.padding(bottom = 6.dp))
-                article.sources.forEach { src ->
-                    Text("•  $src",
-                        style = MaterialTheme.typography.bodyLarge)
-                    androidx.compose.foundation.layout.Spacer(
-                        Modifier.padding(bottom = 6.dp))
-                }
-            }
         }
     }
 }

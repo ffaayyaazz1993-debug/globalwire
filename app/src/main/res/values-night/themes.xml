@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.YSQ" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF102038</item>
+        <item name="android:navigationBarColor">#FF0B1422</item>
+        <item name="android:windowBackground">#FF10151F</item>
+    </style>
+</resources>

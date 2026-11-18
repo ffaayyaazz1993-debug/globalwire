@@ -30,6 +30,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import android.content.Context
+import android.content.res.Configuration
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +58,16 @@ fun GlobalwireApp() {
     var group by remember { mutableStateOf<MenuEntry?>(null) }
     var open by remember { mutableStateOf<Article?>(null) }
 
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("globalwire_prefs", Context.MODE_PRIVATE)
+    val systemDark = (context.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    var dark by remember { mutableStateOf(prefs.getBoolean("theme_dark", systemDark)) }
+    val toggleTheme: () -> Unit = {
+        dark = !dark
+        prefs.edit().putBoolean("theme_dark", dark).apply()
+    }
+
     LaunchedEffect(Unit) {
         try {
             val f = Remote.feed()
@@ -61,35 +79,50 @@ fun GlobalwireApp() {
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Globalwire", fontWeight = FontWeight.Bold) },
-                actions = {
-                    Icon(Icons.Filled.Search, contentDescription = "Search",
-                        modifier = Modifier.padding(end = 16.dp))
-                }
-            )
-        }
-    ) { padding ->
+    MaterialTheme(
+        colorScheme = if (dark) darkColorScheme() else lightColorScheme()
+    ) {
         val article = open
         if (article != null) {
             ReaderScreen(article) { open = null }
-            return@Scaffold
-        }
-        Column(Modifier.padding(padding).fillMaxSize()) {
-            GroupFilter(tax, group) { group = it }
-            when {
-                error != null -> Text(
-                    "Could not load: $error",
-                    Modifier.padding(24.dp),
-                    color = MaterialTheme.colorScheme.error
-                )
-                feed == null -> Box(Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+        } else {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Globalwire", fontWeight = FontWeight.Bold) },
+                        actions = {
+                            IconButton(onClick = toggleTheme) {
+                                Icon(
+                                    if (dark) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                    contentDescription = "Toggle dark mode"
+                                )
+                            }
+                            Icon(
+                                Icons.Filled.Search,
+                                contentDescription = "Search",
+                                modifier = Modifier.padding(end = 16.dp)
+                            )
+                        }
+                    )
                 }
-                else -> ArticleList(feed!!, group) { open = it }
+            ) { padding ->
+                Column(Modifier.padding(padding).fillMaxSize()) {
+                    GroupFilter(tax, group) { group = it }
+                    when {
+                        error != null -> Text(
+                            "Could not load: $error",
+                            Modifier.padding(24.dp),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        feed == null -> Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                        else -> ArticleList(feed!!, group) { open = it }
+                    }
+                }
             }
         }
     }
