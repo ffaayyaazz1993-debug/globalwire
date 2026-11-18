@@ -1,5 +1,6 @@
 package com.globalwire.news.ui
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -20,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -94,37 +97,26 @@ fun GlobalwireApp() {
 
 @Composable
 fun GroupFilter(tax: Taxonomy?, selected: MenuEntry?, onPick: (MenuEntry?) -> Unit) {
-    var open by remember { mutableStateOf(false) }
+    val groups = tax?.menu?.get("global").orEmpty()
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Box, not the bare button: the menu anchors to this node and is
-        // drawn in a popup layer, so it never reserves layout space when
-        // closed (that was the stray empty box) and can overlay content
-        // without being clipped by the parent Row.
-        Box {
-            OutlinedButton(onClick = { open = !open }) {
-                Text(selected?.name ?: "All groups")
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-            }
-            DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                DropdownMenuItem(
-                    text = { Text("All groups") },
-                    onClick = { onPick(null); open = false }
-                )
-                val groups = tax?.menu?.get("global").orEmpty()
-                groups.forEach { g ->
-                    DropdownMenuItem(
-                        text = { Text(g.name) },
-                        onClick = { onPick(g); open = false }
-                    )
-                }
-            }
-        }
-        if (selected != null) {
-            Spacer(Modifier.width(8.dp))
-            OutlinedButton(onClick = { onPick(null) }) { Text("Clear") }
+        FilterChip(
+            selected = selected == null,
+            onClick = { onPick(null) },
+            label = { Text("All") }
+        )
+        groups.forEach { g ->
+            FilterChip(
+                selected = selected?.slug == g.slug,
+                onClick = { onPick(g) },
+                label = { Text(g.name) }
+            )
         }
     }
 }
