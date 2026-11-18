@@ -1,5 +1,6 @@
 package com.globalwire.news.ui
 
+import android.text.Html
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +23,7 @@ import androidx.compose.ui.unit.sp
  * The feed carries the prose as HTML; this walks the top-level tags and maps
  * each to a Compose paragraph, so the article never loads the website's chrome.
  */
-private val TAG = Regex("<(/?)(h2|h3|h4|p|li|strong|em|ul|ol)\b[^>]*>", RegexOption.IGNORE_CASE)
+private val TAG = Regex("<(/?)(h2|h3|h4|p|li|strong|em|ul|ol)\\b[^>]*>", RegexOption.IGNORE_CASE)
 private val ANY = Regex("<[^>]+>")
 
 private fun inline(text: String): AnnotatedString = buildAnnotatedString {
@@ -46,8 +47,7 @@ private fun inline(text: String): AnnotatedString = buildAnnotatedString {
 }
 
 private fun clean(html: String): String =
-    html.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
-        .replace("&quot;", "\"").replace("&#39;", "'").replace("&nbsp;", " ")
+    Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY).toString().trim()
 
 @Composable
 fun HtmlBody(html: String) {
@@ -84,7 +84,7 @@ private fun splitBlocks(html: String): List<Block> {
     val stack = mutableListOf<String>()
     val sb = StringBuilder()
     var i = 0
-    val token = Regex("<(/?)(h2|h3|h4|p|li|ul|ol)\b[^>]*>([^<]*)", RegexOption.IGNORE_CASE)
+    val token = Regex("<(/?)(h2|h3|h4|p|li|ul|ol)\\b[^>]*>([^<]*)", RegexOption.IGNORE_CASE)
     for (m in token.findAll(html)) {
         val closing = m.groupValues[1].isNotEmpty()
         val tag = m.groupValues[2].lowercase()

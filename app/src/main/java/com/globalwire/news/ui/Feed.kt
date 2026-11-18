@@ -13,6 +13,10 @@ data class Article(
     val section: String = "",
     val region: String = "",
     val subregion: String = "",
+    val image: String = "",
+    val image_caption: String = "",
+    val keypoints: List<String> = emptyList(),
+    val sources: List<String> = emptyList(),
     val body: String = ""
 )
 
